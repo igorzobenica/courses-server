@@ -27,31 +27,65 @@ app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 // Define API Endpoint to fetch courses with optional search filters
 app.get("/api/courses", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { search, page = 1, pageSize = 10, category, deliveryMethod, location } = req.query;
+    const { search, page = 1, pageSize = 10, category, deliveryMethod, location, language, startDate } = req.query;
     const filters = {
-        OR: [
+        AND: [
             {
-                name: {
-                    contains: search ? String(search) : "",
-                    mode: "insensitive",
-                },
-            },
-            {
-                instituteName: {
-                    contains: search ? String(search) : "",
-                    mode: "insensitive",
-                },
+                OR: [
+                    {
+                        name: {
+                            contains: search ? String(search) : "",
+                            mode: "insensitive",
+                        },
+                    },
+                    {
+                        instituteName: {
+                            contains: search ? String(search) : "",
+                            mode: "insensitive",
+                        },
+                    },
+                ],
             },
         ],
     };
     if (category) {
-        filters.category = { contains: String(category), mode: "insensitive" };
+        filters.AND.push({
+            category: {
+                contains: String(category),
+                mode: "insensitive",
+            },
+        });
     }
     if (deliveryMethod) {
-        filters.deliveryMethod = { contains: String(deliveryMethod), mode: "insensitive" };
+        filters.AND.push({
+            deliveryMethod: {
+                contains: String(deliveryMethod),
+                mode: "insensitive",
+            },
+        });
     }
     if (location) {
-        filters.location = { contains: String(location), mode: "insensitive" };
+        filters.AND.push({
+            location: {
+                contains: String(location),
+                mode: "insensitive",
+            },
+        });
+    }
+    if (language) {
+        filters.AND.push({
+            language: {
+                contains: String(language),
+                mode: "insensitive",
+            },
+        });
+    }
+    if (startDate) {
+        filters.AND.push({
+            startDate: {
+                gte: new Date(String(startDate)),
+            },
+        });
     }
     const take = parseInt(pageSize, 10);
     const skip = (parseInt(page, 10) - 1) * take;
@@ -72,6 +106,81 @@ app.get("/api/courses", (req, res) => __awaiter(void 0, void 0, void 0, function
     catch (error) {
         console.error(error);
         res.status(500).json({ error: "An error occurred while fetching courses" });
+    }
+}));
+app.get("/api/courses/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id } = req.params;
+    try {
+        const course = yield prisma.course.findUnique({
+            where: { id },
+        });
+        if (course) {
+            res.json(course);
+        }
+        else {
+            res.status(404).json({ error: "Course not found" });
+        }
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred while fetching the course" });
+    }
+}));
+// Fetch list of unique locations
+app.get("/api/locations", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const locations = yield prisma.course.findMany({
+            select: {
+                location: true,
+            },
+            distinct: ['location'],
+            orderBy: {
+                location: 'asc',
+            },
+        });
+        res.json(locations.map(course => course.location));
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred while fetching locations" });
+    }
+}));
+// Fetch list of unique categories
+app.get("/api/categories", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const categories = yield prisma.course.findMany({
+            select: {
+                category: true,
+            },
+            distinct: ['category'],
+            orderBy: {
+                category: 'asc',
+            },
+        });
+        res.json(categories.map(course => course.category));
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred while fetching categories" });
+    }
+}));
+// Fetch list of unique delivery methods
+app.get("/api/deliveries", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const deliveries = yield prisma.course.findMany({
+            select: {
+                deliveryMethod: true,
+            },
+            distinct: ['deliveryMethod'],
+            orderBy: {
+                deliveryMethod: 'asc',
+            },
+        });
+        res.json(deliveries.map(course => course.deliveryMethod));
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred while fetching delivery methods" });
     }
 }));
 const port = process.env.PORT || 3000;
