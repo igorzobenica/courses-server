@@ -14,14 +14,25 @@ datasource db {
 }
 
 model Course {
-  id             String   @id @default(uuid())
-  instituteName  String   @map("institute_name")
+  id             String    @id @default(uuid())
+  instituteName  String    @map("institute_name")
   name           String
   category       String
-  deliveryMethod String   @map("delivery_method")
+  deliveryMethod String    @map("delivery_method")
   location       String
   language       String?
-  startDate      DateTime @updatedAt @map("start_date")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  startDate      DateTime  @updatedAt @map("start_date")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  students       Student[]
+}
+
+model Student {
+  id        String @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String @unique
+  phone     String
+  courseId  String
+  course    Course @relation(fields: [courseId], references: [id])
 }

@@ -25,6 +25,25 @@ const allowedOrigin = process.env.ALLOWED_ORIGIN || 'http://localhost:5173';
 app.use((0, cors_1.default)({ origin: allowedOrigin }));
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: false }));
+app.post("/api/students", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { firstName, lastName, email, phone, courseId } = req.body;
+    try {
+        const newStudent = yield prisma.student.create({
+            data: {
+                firstName,
+                lastName,
+                email,
+                phone,
+                courseId,
+            },
+        });
+        res.status(201).json(newStudent);
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "An error occurred while submitting contact information" });
+    }
+}));
 // Define API Endpoint to fetch courses with optional search filters
 app.get("/api/courses", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { search, page = 1, pageSize = 10, category, deliveryMethod, location, language, startDate } = req.query;

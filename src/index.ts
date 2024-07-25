@@ -17,6 +17,26 @@ app.use(cors({ origin: allowedOrigin }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+app.post("/api/students", async (req, res) => {
+  const { firstName, lastName, email, phone, courseId } = req.body;
+
+  try {
+    const newStudent = await prisma.student.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        phone,
+        courseId,
+      },
+    });
+    res.status(201).json(newStudent);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while submitting contact information" });
+  }
+});
+
 // Define API Endpoint to fetch courses with optional search filters
 app.get("/api/courses", async (req, res) => {
   const { search, page = 1, pageSize = 10, category, deliveryMethod, location, language, startDate } = req.query;
