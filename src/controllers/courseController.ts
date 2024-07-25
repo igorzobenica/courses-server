@@ -1,70 +1,12 @@
 import { Request, Response } from "express";
 import prisma from "../models/prismaClient";
 import { CourseField } from "../types/courseFields";
+import { buildFilters } from "../utils/queryUtils";
 
 export const getCourses = async (req: Request, res: Response) => {
-  const { search, page = 1, pageSize = 10, category, deliveryMethod, location, language, startDate } = req.query;
+  const { page = 1, pageSize = 10 } = req.query;
 
-  const filters: any = {
-    AND: [
-      {
-        OR: [
-          {
-            name: {
-              contains: search ? String(search) : "",
-              mode: "insensitive",
-            },
-          },
-          {
-            instituteName: {
-              contains: search ? String(search) : "",
-              mode: "insensitive",
-            },
-          },
-        ],
-      },
-    ],
-  };
-
-  if (category) {
-    filters.AND.push({
-      category: {
-        contains: String(category),
-        mode: "insensitive",
-      },
-    });
-  }
-  if (deliveryMethod) {
-    filters.AND.push({
-      deliveryMethod: {
-        contains: String(deliveryMethod),
-        mode: "insensitive",
-      },
-    });
-  }
-  if (location) {
-    filters.AND.push({
-      location: {
-        contains: String(location),
-        mode: "insensitive",
-      },
-    });
-  }
-  if (language) {
-    filters.AND.push({
-      language: {
-        contains: String(language),
-        mode: "insensitive",
-      },
-    });
-  }
-  if (startDate) {
-    filters.AND.push({
-      startDate: {
-        gte: new Date(String(startDate)),
-      },
-    });
-  }
+  const filters = buildFilters(req.query);
 
   const take = parseInt(pageSize as string, 10);
   const skip = (parseInt(page as string, 10) - 1) * take;
@@ -105,11 +47,17 @@ export const getCourseById = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "An error occurred while fetching the course" });
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching the course" });
   }
 };
 
-export const getUniqueValues = async (req: Request, res: Response, field: CourseField) => {
+export const getUniqueValues = async (
+  req: Request,
+  res: Response,
+  field: CourseField
+) => {
   try {
     const values = await prisma.course.findMany({
       select: {
@@ -117,12 +65,14 @@ export const getUniqueValues = async (req: Request, res: Response, field: Course
       },
       distinct: [field],
       orderBy: {
-        [field]: 'asc',
+        [field]: "asc",
       },
     });
     res.json(values.map((course: any) => course[field]));
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: `An error occurred while fetching ${field}` });
+    res
+      .status(500)
+      .json({ error: `An error occurred while fetching ${field}` });
   }
 };

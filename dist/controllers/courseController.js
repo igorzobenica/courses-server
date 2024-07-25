@@ -14,67 +14,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUniqueValues = exports.getCourseById = exports.getCourses = void 0;
 const prismaClient_1 = __importDefault(require("../models/prismaClient"));
+const queryUtils_1 = require("../utils/queryUtils");
 const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { search, page = 1, pageSize = 10, category, deliveryMethod, location, language, startDate } = req.query;
-    const filters = {
-        AND: [
-            {
-                OR: [
-                    {
-                        name: {
-                            contains: search ? String(search) : "",
-                            mode: "insensitive",
-                        },
-                    },
-                    {
-                        instituteName: {
-                            contains: search ? String(search) : "",
-                            mode: "insensitive",
-                        },
-                    },
-                ],
-            },
-        ],
-    };
-    if (category) {
-        filters.AND.push({
-            category: {
-                contains: String(category),
-                mode: "insensitive",
-            },
-        });
-    }
-    if (deliveryMethod) {
-        filters.AND.push({
-            deliveryMethod: {
-                contains: String(deliveryMethod),
-                mode: "insensitive",
-            },
-        });
-    }
-    if (location) {
-        filters.AND.push({
-            location: {
-                contains: String(location),
-                mode: "insensitive",
-            },
-        });
-    }
-    if (language) {
-        filters.AND.push({
-            language: {
-                contains: String(language),
-                mode: "insensitive",
-            },
-        });
-    }
-    if (startDate) {
-        filters.AND.push({
-            startDate: {
-                gte: new Date(String(startDate)),
-            },
-        });
-    }
+    const { page = 1, pageSize = 10 } = req.query;
+    const filters = (0, queryUtils_1.buildFilters)(req.query);
     const take = parseInt(pageSize, 10);
     const skip = (parseInt(page, 10) - 1) * take;
     try {
@@ -112,7 +55,9 @@ const getCourseById = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ error: "An error occurred while fetching the course" });
+        res
+            .status(500)
+            .json({ error: "An error occurred while fetching the course" });
     }
 });
 exports.getCourseById = getCourseById;
@@ -124,14 +69,16 @@ const getUniqueValues = (req, res, field) => __awaiter(void 0, void 0, void 0, f
             },
             distinct: [field],
             orderBy: {
-                [field]: 'asc',
+                [field]: "asc",
             },
         });
         res.json(values.map((course) => course[field]));
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({ error: `An error occurred while fetching ${field}` });
+        res
+            .status(500)
+            .json({ error: `An error occurred while fetching ${field}` });
     }
 });
 exports.getUniqueValues = getUniqueValues;
