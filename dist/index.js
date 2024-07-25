@@ -15,7 +15,6 @@ const deliveryRoutes_1 = __importDefault(require("./routes/deliveryRoutes"));
 const errorHandler_1 = __importDefault(require("./middlewares/errorHandler"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const port = process.env.PORT || 3000;
 const allowedOrigin = process.env.ALLOWED_ORIGIN || "http://localhost:5173";
 app.use((0, cors_1.default)({ origin: allowedOrigin }));
 app.use(body_parser_1.default.json());
@@ -26,6 +25,10 @@ app.use("/api/locations", locationRoutes_1.default);
 app.use("/api/categories", categoryRoutes_1.default);
 app.use("/api/deliveries", deliveryRoutes_1.default);
 app.use(errorHandler_1.default);
-app.listen(port, () => {
-    console.log(`Listening on http://localhost:${port}`);
-});
+if (require.main === module) {
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+        console.log(`Listening on http://localhost:${port}`);
+    });
+}
+exports.default = app;

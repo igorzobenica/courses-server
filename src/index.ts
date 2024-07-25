@@ -8,11 +8,11 @@ import locationRoutes from "./routes/locationRoutes";
 import categoryRoutes from "./routes/categoryRoutes";
 import deliveryRoutes from "./routes/deliveryRoutes";
 import errorHandler from "./middlewares/errorHandler";
+import e from "express";
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 const allowedOrigin = process.env.ALLOWED_ORIGIN || "http://localhost:5173";
 
@@ -28,6 +28,11 @@ app.use("/api/deliveries", deliveryRoutes);
 
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Listening on http://localhost:${port}`);
-});
+if (require.main === module) {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Listening on http://localhost:${port}`);
+  });
+}
+
+export default app;
