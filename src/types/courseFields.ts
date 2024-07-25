@@ -1,0 +1,1 @@
+export type CourseField = 'location' | 'category' | 'deliveryMethod';
